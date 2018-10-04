@@ -16,24 +16,30 @@ class DTree():
     root = None
     
     def __init__(self):
-        pass
+        self.depth = 0
     
     class Node():
-        def __init__(self,feature,value):
+        def __init__(self,feature,value,dep):
             self.feature = feature
             self.value = value
             self.left = None
             self.right = None
+            self.dep = dep
             
         def add_children(self,left,right):
             self.left = left
             self.right = right
             return self
+        def getDep(self):
+            return self.dep
     
     class Leaf():
-        def __init__(self,pred,prop):
+        def __init__(self,pred,prop,dep):
             self.pred = pred
             self.prop = prop
+            self.dep = dep
+        def getDep(self):
+            return self.dep
     
     def major(self,dataset):
         if len(dataset) == 0:
@@ -100,11 +106,11 @@ class DTree():
     def train(self,trainset,remainf):
         threshold = 1-1e-1
         pred,prop = self.major(trainset)
-        base = self.Leaf(None, None)
         opt_feature = 0
         opt_value = 0
-        opt_entropy = -0.5
+        opt_entropy = -100
         if prop >= threshold or len(remainf) == 0:
+            base = self.Leaf(None, None)
             base.pred = pred
             base.prop = prop
             return base
@@ -115,12 +121,14 @@ class DTree():
 #                    print('f:'+str(f))
 #                    print('value:'+str(sample[1][f]))
                     cur_entropy = self.entropy(no,yes)
+                    print(cur_entropy)
                     if cur_entropy > opt_entropy:
                         opt_entropy = cur_entropy
                         opt_feature = f
                         opt_value = sample[1][f]
                         print('successful partition')
             remainf.remove(opt_feature)
+            no,yes = self.split(trainset,opt_feature,opt_value)
             left = self.train(no,remainf)
             right = self.train(yes,remainf)
             node = self.Node(opt_feature,opt_value)
@@ -157,7 +165,7 @@ class DTree():
 
 if __name__ == '__main__':
     dt = DTree()
-    accuracy = dt.test(codata[:4000],codata[4001:])
+    accuracy = dt.test(codata[:400],codata[401:500])
     print(accuracy)
 #    from sklearn import tree
 #    clf = tree.DecisionTreeClassifier()
