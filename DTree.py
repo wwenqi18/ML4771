@@ -13,13 +13,16 @@ from collections import Counter
 
 """ Decision Tree Method """
 class DTree():
-    root = None
     
-    def __init__(self):
-        self.depth = 0
+    def __init__(self,max_dep=20,thr = 1-1e-2):
+        self.root = None
+        self.depth = 1
+        self.max_dep = max_dep
+        self.threshold = thr
+        
     
     class Node():
-        def __init__(self,feature,value,dep):
+        def __init__(self,feature,value,dep=0):
             self.feature = feature
             self.value = value
             self.left = None
@@ -34,7 +37,7 @@ class DTree():
             return self.dep
     
     class Leaf():
-        def __init__(self,pred,prop,dep):
+        def __init__(self,pred,prop,dep=0):
             self.pred = pred
             self.prop = prop
             self.dep = dep
@@ -42,8 +45,8 @@ class DTree():
             return self.dep
     
     def major(self,dataset):
-        if len(dataset) == 0:
-            return 1,1
+#        if len(dataset) == 0:
+#            return 1,1
         labels = []
         for sample in dataset:
             labels.append(sample[0])
@@ -53,17 +56,6 @@ class DTree():
 
     # compute entropy in a split consisted of split1 and split2
     def entropy(self,split1,split2):
-#        ham1 = len([sample for sample in split1 if sample[0]==1])
-#        ham2 = len([sample for sample in split2 if sample[0]==1])
-#        prop1 = ham1/len(split1)
-#        prop2 = ham2/len(split2)
-#        entropy1 = prop1*np.log(1/prop1)+(1-prop1)*np.log(1/(1-prop1))
-#        entropy2 = prop2*np.log(1/prop2)+(1-prop2)*np.log(1/(1-prop2))
-#        
-#        tot = len(split1)+len(split2)
-#        tot_ham_prop = (ham1+ham2)/tot
-#        tot_entropy = tot_ham_prop*np.log(1/tot_ham_prop)+(1-tot_ham_prop)*np.log(1/(1-tot_ham_prop))
-#        return tot_entropy-prop1*entropy1-prop2*entropy2
         if len(split1) == 0 or len(split2) == 0:
             return -999
         pred1,prop1 = self.major(split1)
@@ -77,10 +69,8 @@ class DTree():
         else:
             entropy2 = prop2*np.log(1/prop2)+(1-prop2)*np.log(1/(1-prop2))
         
-#        tot = len(split1)+len(split2)
-#        tot_maj_prop = (prop1+prop2)/tot
-#        tot_entropy = tot_maj_prop*np.log(1/tot_maj_prop)+(1-tot_maj_prop)*np.log(1/(1-tot_maj_prop))
-        return -(len(split1)/len(split1)+len(split2))*entropy1-(len(split1)/len(split1)+len(split2))*entropy2
+        tot = len(split1)+len(split2)
+        return -(len(split1)/tot)*entropy1-(len(split1)/tot)*entropy2
     
     # return true/false if feature = yes/no for a sample
     def is_yes(self,sample,feature,value):
@@ -91,47 +81,53 @@ class DTree():
     
     # return the no and yes groups if we split dataset with the given feature/value combo
     def split(self,dataset,feature,value):
-        no,yes = [],[]
-        for sample in dataset:
-            if self.is_yes(sample,feature,value) == True:
-                yes.append(sample)
-            else:
-                no.append(sample)
-#        print('no:'+str(len(no)))
-#        print('yes:'+str(len(yes)))
+        yes = [sample for sample in dataset if self.is_yes(sample,feature,value)]
+        no = [sample for sample in dataset if not self.is_yes(sample,feature,value)]
         return no,yes
     
     # return base cases if data is unambiguous or there are remaining features
     # else return the root of the decision tree with branches added    
-    def train(self,trainset,remainf):
-        threshold = 1-1e-1
+    def train(self,trainset,remainf,cur_dep = 0):
         pred,prop = self.major(trainset)
-        opt_feature = 0
+        opt_feature = -1
         opt_value = 0
         opt_entropy = -100
-        if prop >= threshold or len(remainf) == 0:
-            base = self.Leaf(None, None)
+        if prop >= self.threshold or len(remainf) == 0 or cur_dep >= self.max_dep :
+            base = self.Leaf(None, None,dep = cur_dep)
             base.pred = pred
             base.prop = prop
+            d = base.getDep()
+            print('leaf depth: '+str(d))
             return base
         else:
             for f in remainf:
+                finfo = False
                 for sample in trainset:
                     no,yes = self.split(trainset,f,sample[1][f])
-#                    print('f:'+str(f))
-#                    print('value:'+str(sample[1][f]))
                     cur_entropy = self.entropy(no,yes)
-                    print(cur_entropy)
+                    if cur_entropy > -100:
+                        finfo = True
                     if cur_entropy > opt_entropy:
                         opt_entropy = cur_entropy
                         opt_feature = f
                         opt_value = sample[1][f]
-                        print('successful partition')
+                if finfo == False:
+                    print('useless feature: '+str(f))
+                    remainf.remove(f)
+            if opt_feature == -1:
+                base = self.Leaf(None, None, dep = cur_dep)
+                base.pred = pred
+                base.prop = prop
+                d = base.getDep()
+                print('leaf depth: '+str(d))
+                return base
             remainf.remove(opt_feature)
+            cur_remainf = remainf
             no,yes = self.split(trainset,opt_feature,opt_value)
-            left = self.train(no,remainf)
-            right = self.train(yes,remainf)
-            node = self.Node(opt_feature,opt_value)
+            print('successful partition\t feature: '+str(opt_feature))
+            left = self.train(no,cur_remainf,cur_dep+1)
+            right = self.train(yes,cur_remainf,cur_dep+1)
+            node = self.Node(opt_feature,opt_value,dep = cur_dep)
             node.add_children(left,right)
             return node
     
@@ -140,10 +136,10 @@ class DTree():
         if isinstance(node,self.Leaf):
             return node.pred
         elif isinstance(node,self.Node):
-            if self.is_yes(testsample,node.feature,node.value) == False:
-                return self.pred_sample(node.left,testsample)
-            else:
+            if self.is_yes(testsample,node.feature,node.value):
                 return self.pred_sample(node.right,testsample)
+            else:
+                return self.pred_sample(node.left,testsample)
     
     # train the decision tree with the given trainset and 
     # return predictions for the given testset
@@ -164,8 +160,8 @@ class DTree():
 
 
 if __name__ == '__main__':
-    dt = DTree()
-    accuracy = dt.test(codata[:400],codata[401:500])
+    dt = DTree(20)
+    accuracy = dt.test(codata[:4000],codata[4001:])
     print(accuracy)
 #    from sklearn import tree
 #    clf = tree.DecisionTreeClassifier()
