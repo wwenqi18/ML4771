@@ -37,7 +37,7 @@ class DTree():
     
     def major(self,dataset):
         if len(dataset) == 0:
-            return None,None
+            return 1,1
         labels = []
         for sample in dataset:
             labels.append(sample[0])
@@ -98,12 +98,12 @@ class DTree():
     # return base cases if data is unambiguous or there are remaining features
     # else return the root of the decision tree with branches added    
     def train(self,trainset,remainf):
-        threshold = 1-1e-2
+        threshold = 1-1e-1
         pred,prop = self.major(trainset)
         base = self.Leaf(None, None)
         opt_feature = 0
         opt_value = 0
-        opt_entropy = 0
+        opt_entropy = -0.5
         if prop >= threshold or len(remainf) == 0:
             base.pred = pred
             base.prop = prop
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     dt = DTree()
     accuracy = dt.test(codata[:4000],codata[4001:])
     print(accuracy)
-    from sklearn import tree
-    clf = tree.DecisionTreeClassifier()
-    clf.fit(dataset[0],dataset[1])
-    clf.predict(dataset[0][ind[3000:4000]])
+#    from sklearn import tree
+#    clf = tree.DecisionTreeClassifier()
+#    clf.fit(dataset[0],dataset[1])
+#    clf.predict(dataset[0][ind[3000:4000]])
