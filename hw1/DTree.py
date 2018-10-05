@@ -127,7 +127,7 @@ class DTree():
             base.pred = pred
             base.prop = prop
             d = base.getDep()
-            print('leaf depth: '+str(d))
+#            print('leaf depth: '+str(d))
             return base
         else:
             for f in remainf:
@@ -136,14 +136,14 @@ class DTree():
                     opt_feature = f
                     opt_gain = info_gain 
                 if opt_gain == -100:
-                    print('useless feature: '+str(f))
+#                    print('useless feature: '+str(f))
                     remainf.remove(f)    
             if opt_feature == -1:
                 base = self.Leaf(None, None, dep = cur_dep)
                 base.pred = pred
                 base.prop = prop
                 d = base.getDep()
-                print('leaf depth: '+str(d))
+#                print('leaf depth: '+str(d))
                 return base
             else:
 #                print(self.gain(trainset,opt_feature))
@@ -152,7 +152,7 @@ class DTree():
                     base.pred = pred
                     base.prop = prop
                     d = base.getDep()
-                    print('leaf depth: '+str(d))
+#                    print('leaf depth: '+str(d))
                     return base
                 split_opt = -1000
                 for sample in trainset:
@@ -170,14 +170,14 @@ class DTree():
                     base.pred = pred
                     base.prop = prop
                     d = base.getDep()
-                    print('leaf depth: '+str(d))
+#                    print('leaf depth: '+str(d))
                     return base
                 else:
                     left = self.train(no,cur_remainf,cur_dep+1)
                     right = self.train(yes,cur_remainf,cur_dep+1)
                     node = self.Node(opt_feature,opt_value,dep = cur_dep)
                     node.add_children(left,right)
-                    print('successful partition\t feature: '+str(opt_feature))
+#                    print('successful partition\t feature: '+str(opt_feature))
                     return node
     
     # return the predicted label of one test sample, given the decision tree

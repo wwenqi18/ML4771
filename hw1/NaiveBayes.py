@@ -6,6 +6,8 @@ Created on Fri Oct  5 00:23:14 2018
 @author: yty
 """
 
+import numpy as np
+
 """ Naive Bayes Classifier """
 class NaiveBayes():
     def __init__(self):
