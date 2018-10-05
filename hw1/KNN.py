@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct  5 00:24:53 2018
-
-@author: yty
+COMS W4771 Machine Learning
+HW 1, Problem 6
+Tianyang Yang, Wenqi Wang
+October 5, 2018
 """
+
+
 import numpy as np
+
 
 """ K-nearst Neighbors """
 class KNN():
@@ -14,7 +18,8 @@ class KNN():
         if measure not in ['1','2','inf']:
             raise ValueError('Unexpected metric type')
         self.metric = measure
-        
+    
+    # perform classification for given trainset and testset    
     def pred(self,trainset,testset):
         pred_label = []   
         for testsample in testset:
@@ -39,7 +44,7 @@ class KNN():
                 pred_label.append(0)
         return pred_label
         
-        
+    # evaluate classification accuracy    
     def test(self,trainset,testset):
         pred_label = self.pred(trainset,testset)
         label = []

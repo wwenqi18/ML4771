@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Oct  4 01:20:46 2018
-
-@author: yty
+COMS W4771 Machine Learning
+HW 1, Problem 6
+Tianyang Yang, Wenqi Wang
+October 5, 2018
 """
+
+
 import numpy as np
 from collections import Counter
 
@@ -12,13 +15,13 @@ from collections import Counter
 """ Decision Tree Method """
 class DTree():
     
-    def __init__(self,max_dep=20,thr = 1-1e-2):
+    def __init__(self,max_dep=20,thr=1-1e-2):
         self.root = None
         self.depth = 1
         self.max_dep = max_dep
-        self.threshold = thr
+        self.threshold = thr    # determine if majority prop is large enough
         
-    
+    # internal class Node
     class Node():
         def __init__(self,feature,value,dep=0):
             self.feature = feature
@@ -33,7 +36,8 @@ class DTree():
             return self
         def getDep(self):
             return self.dep
-    
+        
+    # internal class Leaf
     class Leaf():
         def __init__(self,pred,prop,dep=0):
             self.pred = pred
@@ -42,13 +46,12 @@ class DTree():
         def getDep(self):
             return self.dep
     
+    # find the most common class in a dataset and its proportion
     def major(self,dataset):
-#        if len(dataset) == 0:
-#            return 1,1
         labels = []
         for sample in dataset:
             labels.append(sample[0])
-        pred, count = Counter(labels).most_common(1)[0][0],Counter(labels).most_common(1)[0][1]
+        pred,count = Counter(labels).most_common(1)[0][0],Counter(labels).most_common(1)[0][1]
         prop = count/len(dataset)
         return pred,prop
 
@@ -127,7 +130,6 @@ class DTree():
             base.pred = pred
             base.prop = prop
             d = base.getDep()
-#            print('leaf depth: '+str(d))
             return base
         else:
             for f in remainf:
@@ -136,29 +138,24 @@ class DTree():
                     opt_feature = f
                     opt_gain = info_gain 
                 if opt_gain == -100:
-#                    print('useless feature: '+str(f))
                     remainf.remove(f)    
             if opt_feature == -1:
                 base = self.Leaf(None, None, dep = cur_dep)
                 base.pred = pred
                 base.prop = prop
                 d = base.getDep()
-#                print('leaf depth: '+str(d))
                 return base
             else:
-#                print(self.gain(trainset,opt_feature))
                 if self.gain(trainset,opt_feature) < 0.04:
                     base = self.Leaf(None, None, dep = cur_dep)
                     base.pred = pred
                     base.prop = prop
                     d = base.getDep()
-#                    print('leaf depth: '+str(d))
                     return base
                 split_opt = -1000
                 for sample in trainset:
                     no,yes = self.split(trainset,opt_feature,sample[1][opt_feature])
                     cur_entropy = self.split_entropy(no,yes)
-#                    print(str(cur_entropy)+'\t'+str(split_opt)+'\t'+str(opt_feature))
                     if cur_entropy > split_opt:
                         split_opt = cur_entropy
                         opt_value = sample[1][opt_feature]
@@ -170,14 +167,12 @@ class DTree():
                     base.pred = pred
                     base.prop = prop
                     d = base.getDep()
-#                    print('leaf depth: '+str(d))
                     return base
                 else:
                     left = self.train(no,cur_remainf,cur_dep+1)
                     right = self.train(yes,cur_remainf,cur_dep+1)
                     node = self.Node(opt_feature,opt_value,dep = cur_dep)
                     node.add_children(left,right)
-#                    print('successful partition\t feature: '+str(opt_feature))
                     return node
     
     # return the predicted label of one test sample, given the decision tree
@@ -207,12 +202,8 @@ class DTree():
         precision = len([i for i,j in zip(pred_label,label) if i ==j])/len(pred_label)
         return precision
 
-
-if __name__ == '__main__':
-    dt = DTree(60)
-    accuracy = dt.test(codata[:4000],codata[4001:])
-    print(accuracy)
-#    from sklearn import tree
-#    clf = tree.DecisionTreeClassifier()
-#    clf.fit(dataset[0],dataset[1])
-#    clf.predict(dataset[0][ind[3000:4000]])
+# testing purposes
+#if __name__ == '__main__':
+#    dt = DTree(60)
+#    accuracy = dt.test(codata[:4000],codata[4001:])
+#    print(accuracy)

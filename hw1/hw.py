@@ -3,12 +3,8 @@ COMS W4771 Machine Learning
 HW 1, Problem 6
 Tianyang Yang, Wenqi Wang
 October 5, 2018
-
-References:
-https://machinelearningmastery.com/clean-text-machine-learning-python/
-https://en.wikipedia.org/wiki/ID3_algorithm
-
 """
+
 
 # import modules
 import glob
@@ -115,9 +111,9 @@ if __name__ == '__main__':
     data_vec = embed(ham+spam,max_feature)
     dataset = [np.asarray(data_vec),np.concatenate((np.ones(len(ham)),np.zeros(len(spam))))]
     print('dataset loaded successfully')
+#    testing purposes
 #    codata = list(zip(dataset[1],dataset[0]))
-#    shuffle(codata)
-    
+#    shuffle(codata)    
 #    knn = KNN(7,'2')
 #    cv_knn = cv(knn,dataset,5)
 #    dtree = DT(60)
