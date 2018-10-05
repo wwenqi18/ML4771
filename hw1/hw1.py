@@ -17,7 +17,11 @@ from nltk.stem.porter import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from random import shuffle
 from sklearn.model_selection import KFold
+import os, sys
 
+from .KNN import KNN
+import NaiveBayes
+import DTree.DTree as DT
 
 
 # convert text files to list of strings
@@ -76,6 +80,14 @@ if __name__ == '__main__':
     dataset = [np.asarray(data_vec),np.concatenate((np.ones(len(ham)),np.zeros(len(spam))))]
     codata = list(zip(dataset[1],dataset[0]))
     shuffle(codata)
+    knn = KNN(7,'2')
+    cv_knn = cv(knn,dataset,5)
+    dtree = DT(60)
+    cv_dt = cv(dtree,dataset,3)
+    nb = NB()
+    cv_nb = cv(nb,dataset,5)
+    
+    
     
     
     
