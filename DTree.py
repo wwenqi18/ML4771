@@ -54,23 +54,23 @@ class DTree():
         prop = count/len(dataset)
         return pred,prop
 
-    # compute entropy in a split consisted of split1 and split2
-    def entropy(self,split1,split2):
-        if len(split1) == 0 or len(split2) == 0:
-            return -999
-        pred1,prop1 = self.major(split1)
-        pred2,prop2 = self.major(split2)
-        if prop1 == 1:
-            entropy1 = 0
-        else:
-            entropy1 = prop1*np.log(1/prop1)+(1-prop1)*np.log(1/(1-prop1)) 
-        if prop2 == 1:
-            entropy2 = 0
-        else:
-            entropy2 = prop2*np.log(1/prop2)+(1-prop2)*np.log(1/(1-prop2))
-        
-        tot = len(split1)+len(split2)
-        return -(len(split1)/tot)*entropy1-(len(split1)/tot)*entropy2
+#    # compute entropy in a split consisted of split1 and split2
+#    def entropy(self,split1,split2):
+#        if len(split1) == 0 or len(split2) == 0:
+#            return -999
+#        pred1,prop1 = self.major(split1)
+#        pred2,prop2 = self.major(split2)
+#        if prop1 == 1:
+#            entropy1 = 0
+#        else:
+#            entropy1 = prop1*np.log(1/prop1)+(1-prop1)*np.log(1/(1-prop1)) 
+#        if prop2 == 1:
+#            entropy2 = 0
+#        else:
+#            entropy2 = prop2*np.log(1/prop2)+(1-prop2)*np.log(1/(1-prop2))
+#        
+#        tot = len(split1)+len(split2)
+#        return -(len(split1)/tot)*entropy1-(len(split1)/tot)*entropy2
     
     # return true/false if feature = yes/no for a sample
     def is_yes(self,sample,feature,value):
@@ -84,6 +84,34 @@ class DTree():
         yes = [sample for sample in dataset if self.is_yes(sample,feature,value)]
         no = [sample for sample in dataset if not self.is_yes(sample,feature,value)]
         return no,yes
+    
+    def entropy(self,dataset):
+        ham = len([sample for sample in dataset if sample[0]==1])
+        spam = len([sample for sample in dataset if sample[0]==0])
+        tot = len(dataset)
+        if ham == 0 or spam == 0:
+            return 0
+        return -ham/tot*np.log2(ham/tot)-spam/tot*np.log2(spam/tot)
+        
+    # compute the informational gain of a feature in dataset
+    def gain(self,dataset,feature):
+        value_dict = {}
+        for sample in dataset:
+            value = sample[1][feature]
+            if value_dict.get(value) == None:
+                value_dict[value] = [1,sample[0],1-sample[0]]
+            else:
+                value_dict[value][0] += 1
+                value_dict[value][2-int(sample[0])] += 1
+        
+        cond_ent = 0
+        for value in value_dict:
+            summary = value_dict.get(value)
+            count,ham,spam = summary[0],summary[1],summary[2]
+            cond_ent += count/len(dataset)*(-ham/count*np.log2(ham/count)-spam/count*np.log2(spam/count))
+        class_ent = self.entropy(dataset) 
+        gain = class_ent - cond_ent
+        return gain
     
     # return base cases if data is unambiguous or there are remaining features
     # else return the root of the decision tree with branches added    
